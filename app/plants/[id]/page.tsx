@@ -86,7 +86,7 @@ export default async function PlantDetailPage({
               </div>
             </div>
 
-            {/* Charts */}
+            {/* This is the chart for the temperature of the plant*/}
             <SensorChart
               data={sensorReadings || []}
               title="Temperature History"
@@ -94,7 +94,7 @@ export default async function PlantDetailPage({
               unit="°C"
               color="#ef4444"
             />
-
+            {/* This is the chart for the humidity history of the plant*/}
             <SensorChart
               data={sensorReadings || []}
               title="Humidity History"
@@ -102,7 +102,7 @@ export default async function PlantDetailPage({
               unit="%"
               color="#3b82f6"
             />
-
+            {/* This is the chart for the soil moisture history of the plant*/}
             <SensorChart
               data={sensorReadings || []}
               title="Soil Moisture History"
@@ -110,7 +110,7 @@ export default async function PlantDetailPage({
               unit="%"
               color="#22c55e"
             />
-
+            {/* This is the chart for the light level history of the plant*/}
             <SensorChart
               data={sensorReadings || []}
               title="Light Level History"
@@ -120,7 +120,7 @@ export default async function PlantDetailPage({
             />
           </div>
 
-          {/* Right Column - Controls and AI */}
+          {/* Right Column - AI prediction button and analysis*/}
           <div className="space-y-6">
             <MoisturePrediction plantId={id} />
             <ControlPanel plantId={id} initialState={controlState} />
