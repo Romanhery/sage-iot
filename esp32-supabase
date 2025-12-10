@@ -1,0 +1,107 @@
+#include <Arduino.h>
+#include <WiFi.h>
+#include <HTTPClient.h>
+#include <ArduinoJson.h>
+#include <DHT.h>
+
+// 1. INCLUDE FOR BROWNOUT FIX
+#include "soc/soc.h"
+#include "soc/rtc_cntl_reg.h"
+
+// ======================= CREDENTIALS =======================
+#define SSID               "Roman"
+#define PASSWORD           "Padar@2025"
+
+#define supabaseUrl       "https://juaaocqwwczwoiphiphj.supabase.co"
+#define supabaseKey       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp1YWFvY3F3d2N6d29pcGhpcGhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMTcxOTEsImV4cCI6MjA3OTU5MzE5MX0.0MQxvseTj797AU0KLbOS9bug31g2mkoIj1GdUml3LvQ"
+#define tableName         "readings"
+
+// ======================= PINS =======================
+#define DHT_PIN           27    // Digital Pin for Temp
+#define MOISTURE_PIN      35    // Analog Pin for Soil
+#define DHT_TYPE          DHT11 // Blue Sensor
+
+DHT dht(DHT_PIN, DHT_TYPE);
+
+// --- FUNCTION TO SEND ALL DATA ---
+void sendSensorData() {
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("WiFi lost, reconnecting...");
+    WiFi.reconnect();
+    return;
+  }
+
+  // --- READ TEMPERATURE (Digital) ---
+  float h = dht.readHumidity();
+  float t = dht.readTemperature(); 
+
+  if (isnan(h) || isnan(t)) {
+    Serial.println("Failed to read DHT! Sending 0.");
+    h = 0; t = 0;
+  }
+
+  // --- READ SOIL MOISTURE (Analog) ---
+  int rawMoisture = analogRead(MOISTURE_PIN);
+  
+  // Map 4095 (Dry) -> 0% and 0 (Wet) -> 100%
+  // If your sensor reads backwards (100% in air), swap the 4095 and 0 below!
+  int moisturePercent = map(rawMoisture, 4095, 0, 0, 100); 
+  moisturePercent = constrain(moisturePercent, 0, 100);
+
+  // --- PRINT TO LOGS ---
+  Serial.print("Moisture: "); Serial.print(moisturePercent); Serial.print("% | ");
+  Serial.print("Temp: "); Serial.print(t); Serial.print("C | ");
+  Serial.print("Hum: "); Serial.print(h); Serial.println("%");
+
+  // --- SEND TO SUPABASE ---
+  StaticJsonDocument<200> jsonDoc;
+  jsonDoc["temperature"] = t;
+  jsonDoc["humidity"] = h;
+  jsonDoc["moisture_lvl"] = moisturePercent;
+  
+  String jsonString;
+  serializeJson(jsonDoc, jsonString);
+
+  HTTPClient http;
+  String endpoint = String(supabaseUrl) + "/rest/v1/" + tableName; 
+
+  http.begin(endpoint);
+  http.addHeader("Content-Type", "application/json");
+  http.addHeader("apikey", supabaseKey);
+  http.addHeader("Authorization", "Bearer " + String(supabaseKey));
+  
+  int httpResponseCode = http.POST(jsonString);
+
+  if (httpResponseCode > 0) {
+    Serial.println("Success! Row added to Supabase.");
+  } else {
+    Serial.print("Error sending data: ");
+    Serial.println(httpResponseCode);
+  }
+  
+  http.end();
+}
+
+void setup() {
+  // 2. DISABLE BROWNOUT DETECTOR (Safety first!)
+  WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0);
+
+  Serial.begin(115200);
+
+  dht.begin(); // Start Temp Sensor
+
+  WiFi.begin(SSID, PASSWORD);
+  Serial.print("Connecting to WiFi");
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\nConnected!");
+}
+
+void loop() {
+  sendSensorData();
+  
+  Serial.println("All done. Waiting 15 minutes...");
+  delay(900000); 
+}
