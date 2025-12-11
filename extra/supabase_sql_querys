@@ -1,0 +1,24 @@
+-- database_updates.sql
+
+-- 1. Allow sensor readings to auto-link to plants
+ALTER TABLE public.sensor_readings ALTER COLUMN plant_id DROP NOT NULL;
+
+-- 2. Add device_id to plants if missing
+ALTER TABLE public.plants ADD COLUMN IF NOT EXISTS device_id text UNIQUE;
+
+-- 3. Function to link device -> plant
+CREATE OR REPLACE FUNCTION link_device_to_plant()
+RETURNS TRIGGER AS $$
+BEGIN
+  UPDATE public.sensor_readings
+  SET plant_id = (SELECT id FROM public.plants WHERE device_id = NEW.device_id)
+  WHERE id = NEW.id;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 4. Trigger
+CREATE TRIGGER trigger_link_plant
+AFTER INSERT ON public.sensor_readings
+FOR EACH ROW
+EXECUTE FUNCTION link_device_to_plant();
