@@ -1,13 +1,31 @@
-const int sensorPin = 35;
+const int sensorPin = 35; 
 
-void setup(){
+// REPLACE THESE WITH YOUR NUMBERS FROM STEP 2
+const int dryValue = 3500; // The value you saw in the air
+const int wetValue = 1200; // The value you saw in the water
+
+void setup() {
   Serial.begin(115200);
-  delay(1000);
-};
+}
 
-void loop(){
+void loop() {
   int rawValue = analogRead(sensorPin);
-  Serial.print("Raw Sensor Value: ");
-  Serial.print(rawValue);
-  delay(500);
+  
+  // The map function converts the raw range to 0-100%
+  // map(value, fromLow, fromHigh, toLow, toHigh)
+  int moisturePercent = map(rawValue, dryValue, wetValue, 0, 100);
+
+  // Constrain ensures the percentage doesn't go below 0 or above 100
+  moisturePercent = constrain(moisturePercent, 0, 100);
+
+  Serial.print("Moisture: ");
+  Serial.print(moisturePercent);
+  Serial.println("%");
+
+  // Logic for your Drought/Diabetes Project
+  if(moisturePercent < 30) {
+    Serial.println("ALERT: Soil is too dry! Plant stress imminent."); 
+  }
+
+  delay(1000);
 }
