@@ -101,7 +101,6 @@ export function PlantCard({ plant }: PlantCardProps) {
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Light</p>
-                    <p className="text-sm font-semibold">{latestReading.light_level.toFixed(0)} lux</p>
                   </div>
                 </div>
               </div>
