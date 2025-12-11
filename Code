@@ -1,31 +1,61 @@
-const int sensorPin = 35; 
+#include "DHT.h"
 
-// REPLACE THESE WITH YOUR NUMBERS FROM STEP 2
-const int dryValue = 3500; // The value you saw in the air
-const int wetValue = 1200; // The value you saw in the water
+// --- CONFIGURATION ---
+#define SOIL_PIN 35      // Input Only pin (Safe for analog)
+#define DHT_PIN 4        // Digital I/O pin (Required for DHT)
+#define DHTTYPE DHT22    // Change to DHT11 if your sensor is Blue
+
+// Initialize the DHT sensor
+DHT dht(DHT_PIN, DHTTYPE);
+
+// Soil Calibration (Use your numbers)
+const int dryValue = 3500;
+const int wetValue = 1200;
 
 void setup() {
   Serial.begin(115200);
+  dht.begin(); // Start the temp sensor
+  Serial.println("System Initializing...");
+  delay(2000); // Give sensors time to warm up
 }
 
 void loop() {
-  int rawValue = analogRead(sensorPin);
-  
-  // The map function converts the raw range to 0-100%
-  // map(value, fromLow, fromHigh, toLow, toHigh)
-  int moisturePercent = map(rawValue, dryValue, wetValue, 0, 100);
+  // --- READ SOIL ---
+  int rawSoil = analogRead(SOIL_PIN);
+  int soilPercent = map(rawSoil, dryValue, wetValue, 0, 100);
+  soilPercent = constrain(soilPercent, 0, 100);
 
-  // Constrain ensures the percentage doesn't go below 0 or above 100
-  moisturePercent = constrain(moisturePercent, 0, 100);
+  // --- READ AIR ---
+  // Reading temperature or humidity takes about 250 milliseconds!
+  float humidity = dht.readHumidity();
+  float tempC = dht.readTemperature();     // Celsius
+  float tempF = dht.readTemperature(true); // Fahrenheit
 
-  Serial.print("Moisture: ");
-  Serial.print(moisturePercent);
-  Serial.println("%");
-
-  // Logic for your Drought/Diabetes Project
-  if(moisturePercent < 30) {
-    Serial.println("ALERT: Soil is too dry! Plant stress imminent."); 
+  // Check if reading failed
+  if (isnan(humidity) || isnan(tempC)) {
+    Serial.println("Failed to read from DHT sensor!");
+    return;
   }
 
-  delay(1000);
+  // --- PRINT DATA ---
+  Serial.println("-------------------------");
+  Serial.print("🌱 Soil Moisture: ");
+  Serial.print(soilPercent);
+  Serial.println("%");
+  
+  Serial.print("🌡️ Temperature:   ");
+  Serial.print(tempF);
+  Serial.println("°F");
+  
+  Serial.print("💧 Humidity:      ");
+  Serial.print(humidity);
+  Serial.println("%");
+
+  // --- NEDC LOGIC ---
+  // "If it is hotter than 90°F, plants need higher soil moisture"
+  if (tempF > 90) {
+     Serial.println("⚠️ HEAT ALERT: Increasing water requirement!");
+  }
+
+  delay(2000); // Wait 2 seconds between readings
 }
