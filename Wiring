@@ -5,12 +5,6 @@ GND -> GND
 VCC -> VN
 AOUT -> D35
 --------------------------
-Temperature/Humidty sensor
---------------------------
-(-) -> GND
-out -> D27
-(+) -> VN
---------------------------
 ESP32 -> computer via micro-usb or other
 
 
