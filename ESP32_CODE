@@ -3,12 +3,12 @@
 #include <DHT.h>
 
 // --- WIFI SETTINGS ---
-const char* ssid = "YOUR_WIFI_NAME";
-const char* password = "YOUR_WIFI_PASSWORD";
+const char* ssid = "Roman";
+const char* password = "Padar@2025";
 
 // --- SUPABASE SETTINGS ---
-const char* supabase_url = "https://YOUR_PROJECT_ID.supabase.co/rest/v1/readings";
-const char* supabase_key = "YOUR_ANON_KEY_HERE";
+const char* supabase_url = "https://juaaocqwwczwoiphiphj.supabase.co/rest/v1/readings";
+const char* supabase_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp1YWFvY3F3d2N6d29pcGhpcGhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMTcxOTEsImV4cCI6MjA3OTU5MzE5MX0.0MQxvseTj797AU0KLbOS9bug31g2mkoIj1GdUml3LvQ";
 
 // --- SENSOR SETTINGS ---
 #define SOIL_PIN 35
