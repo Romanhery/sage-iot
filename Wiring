@@ -1,9 +1,9 @@
 --------------------------
-Capcitive Sensor
+Temperature and Humidity Sensor
 --------------------------
-GND -> GND
-VCC -> VN
-AOUT -> D35
+(-) -> GND
+(+) -> 3V3 or 3.3v
+AOUT -> D4
 --------------------------
 ESP32 -> computer via micro-usb or other
 
