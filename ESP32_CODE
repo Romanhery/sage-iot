@@ -87,6 +87,6 @@ void loop() {
     Serial.println("WiFi Disconnected");
   }
 
-  // WAIT 10 SECONDS (Supabase is free, don't spam it too fast!)
-  delay(10000); 
+  // WAIT 4 Hours SECONDS (Supabase is free, don't spam it too fast!) You also don't need that many updates every day
+  delay(1440000); 
 }
