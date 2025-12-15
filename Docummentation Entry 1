@@ -1,0 +1,45 @@
+📝 MESA Engineering Log Entry
+Date: December 14, 2025 Topic: Scalable Architecture & Hardware Provisioning
+
+1. The Goal
+To transition the SAGE-IoT prototype from a single-user "science project" into a multi-user "consumer product" where any user can securely claim a device without editing code.
+
+2. Key Engineering Challenges (The "Gold" for Judges) 🏆
+Challenge A: Data Security & Multi-Tenancy
+
+Problem: We needed a way for multiple users to use the same database without seeing each other's data.
+
+Solution: Implemented PostgreSQL Row Level Security (RLS) in Supabase.
+
+Technical Detail: Wrote SQL policies so users can only SELECT rows where auth.uid() = user_id.
+
+Result: 100% data isolation between users.
+
+Challenge B: Hardware Memory Limits
+
+Problem: Adding WiFi and Bluetooth libraries simultaneously caused the ESP32 code to exceed the default 1.2MB partition limit (Error: text section exceeds available space).
+
+Solution: Modified the ESP32 Partition Scheme.
+
+Technical Detail: Switched from "Default" map to "Huge APP" (3MB App / 1MB SPIFFS) to allocate more Flash memory for the firmware.
+
+Result: Code successfully compiled and uploaded.
+
+Challenge C: "No-Code" Device Setup
+
+Problem: Hardcoding WiFi credentials into C++ code is not scalable for mass production.
+
+Solution: Built a Web Bluetooth (BLE) provisioning system.
+
+Technical Detail: Created a React component that connects to the ESP32 via Bluetooth GATT to transmit WiFi credentials securely from the browser.
+
+Result: Users can connect the device to WiFi via the web dashboard without needing a USB cable or Arduino IDE.
+
+3. System Architecture Diagram
+(You should draw a simple box diagram like this for your notebook):
+
+ESP32 -> sends data to -> Next.js API
+
+Next.js API -> validates Device ID -> Supabase Database
+
+Supabase -> syncs realtime data to -> User Dashboard
