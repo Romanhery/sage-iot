@@ -78,10 +78,7 @@ export default async function PlantDetailPage({
                   </p>
                 </div>
                 <div className="bg-background rounded-lg p-4">
-                  <p className="text-sm text-muted-foreground mb-1">Light Level</p>
-                  <p className="text-2xl font-bold text-foreground">
-                    {latestReading?.light_level.toFixed(0) || "--"} lux
-                  </p>
+                  
                 </div>
               </div>
             </div>
