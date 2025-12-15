@@ -1,9 +1,7 @@
 --------------------------
-Capcitive Sensor
+No Wiring Needed
 --------------------------
-GND -> GND
-VCC -> VN
-AOUT -> D35
+Just upload the code to the esp32
 --------------------------
 ESP32 -> computer via micro-usb or other
 
