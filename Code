@@ -1,31 +1,108 @@
-const int sensorPin = 35; 
+#include <WiFi.h>
+#include <BLEDevice.h>
+#include <BLEServer.h>
+#include <BLEUtils.h>
+#include <BLE2902.h>
 
-// REPLACE THESE WITH YOUR NUMBERS FROM STEP 2
-const int dryValue = 3500; // The value you saw in the air
-const int wetValue = 1200; // The value you saw in the water
+// Unique IDs for the Service and Characteristics
+#define SERVICE_UUID           "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
+#define CHAR_UUID_CREDENTIALS  "beb5483e-36e1-4688-b7f5-ea07361b26a8" // Write SSID:PASSWORD here
+#define CHAR_UUID_STATUS       "53966527-2b0e-473d-888d-788c26c364c2" // Read Status here
+
+BLEServer* pServer = NULL;
+BLECharacteristic* pStatusCharacteristic = NULL;
+bool deviceConnected = false;
+
+// 1. CONTROL THE STATUS
+void setStatus(String msg) {
+  pStatusCharacteristic->setValue(msg.c_str());
+  pStatusCharacteristic->notify();
+  Serial.println("BLE Status: " + msg);
+}
+
+// 2. HANDLE INCOMING WIFI CREDENTIALS
+// 2. HANDLE INCOMING WIFI CREDENTIALS
+class CredentialsCallbacks: public BLECharacteristicCallbacks {
+    void onWrite(BLECharacteristic *pCharacteristic) {
+      // FIX: Changed std::string to String for ESP32 v3.0+
+      String value = pCharacteristic->getValue(); 
+      
+      if (value.length() > 0) {
+        // We can use 'value' directly now, no need to convert
+        String data = value; 
+        
+        // Expected format: "SSID:PASSWORD"
+        int separatorIndex = data.indexOf(':');
+        
+        if (separatorIndex == -1) {
+          setStatus("ERROR: Invalid Format");
+          return;
+        }
+
+        String ssid = data.substring(0, separatorIndex);
+        String pass = data.substring(separatorIndex + 1);
+
+        setStatus("CONNECTING: " + ssid);
+        
+        // Try to connect
+        WiFi.begin(ssid.c_str(), pass.c_str());
+        
+        // Wait up to 10 seconds
+        int attempts = 0;
+        while (WiFi.status() != WL_CONNECTED && attempts < 20) {
+          delay(500);
+          attempts++;
+        }
+
+        if (WiFi.status() == WL_CONNECTED) {
+          String successMsg = "SUCCESS:" + WiFi.macAddress();
+          setStatus(successMsg);
+          // Optional: Save to Preferences/EEPROM here to remember it after restart
+        } else {
+          setStatus("ERROR: Incorrect WiFi Password");
+        }
+      }
+    }
+};
 
 void setup() {
   Serial.begin(115200);
+  
+  // Create the BLE Device
+  BLEDevice::init("SAGE_GARDEN");
+  pServer = BLEDevice::createServer();
+  BLEService *pService = pServer->createService(SERVICE_UUID);
+
+  // Create Characteristics
+  BLECharacteristic *pCredsCharacteristic = pService->createCharacteristic(
+                                         CHAR_UUID_CREDENTIALS,
+                                         BLECharacteristic::PROPERTY_WRITE
+                                       );
+  pCredsCharacteristic->setCallbacks(new CredentialsCallbacks());
+
+  pStatusCharacteristic = pService->createCharacteristic(
+                                         CHAR_UUID_STATUS,
+                                         BLECharacteristic::PROPERTY_READ |
+                                         BLECharacteristic::PROPERTY_NOTIFY
+                                       );
+  pStatusCharacteristic->addDescriptor(new BLE2902());
+
+  // Start the service
+  pService->start();
+  
+  // Start advertising
+  BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
+  pAdvertising->addServiceUUID(SERVICE_UUID);
+  pAdvertising->setScanResponse(true);
+  pAdvertising->setMinPreferred(0x06);  
+  pAdvertising->setMinPreferred(0x12);
+  BLEDevice::startAdvertising();
+  
+  setStatus("READY_TO_PAIR");
+  Serial.println("Waiting for App to connect...");
 }
 
 void loop() {
-  int rawValue = analogRead(sensorPin);
-  
-  // The map function converts the raw range to 0-100%
-  // map(value, fromLow, fromHigh, toLow, toHigh)
-  int moisturePercent = map(rawValue, dryValue, wetValue, 0, 100);
-
-  // Constrain ensures the percentage doesn't go below 0 or above 100
-  moisturePercent = constrain(moisturePercent, 0, 100);
-
-  Serial.print("Moisture: ");
-  Serial.print(moisturePercent);
-  Serial.println("%");
-
-  // Logic for your Drought/Diabetes Project
-  if(moisturePercent < 30) {
-    Serial.println("ALERT: Soil is too dry! Plant stress imminent."); 
-  }
-
+  // Main loop logic here
   delay(1000);
 }
