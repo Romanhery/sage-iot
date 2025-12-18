@@ -1,10 +1,16 @@
 --------------------------
-Temperature and Humidity Sensor
+Relay
 --------------------------
+S -> D4
+(+) -> VIN/5V
 (-) -> GND
-(+) -> 3V3 or 3.3v
-AOUT -> D4
 --------------------------
-ESP32 -> computer via micro-usb or other
-
+Battery Pump Relay
+--------------------------
+Battery Red (+) -> Relay COM (MIDDLE TERMNIAL)
+Pump Red (+) -> Relay NO (Normally Open Terminal)
+Battery Black (-) -> Connects both to ESP32 GND and Pump Black 
+--------------------------
+Note: All GND has to be connected all together 
+--------------------------
 
