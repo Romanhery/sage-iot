@@ -1,0 +1,12 @@
+1. Connect esp32 to computer
+2. Go to https://install.wled.me/
+3. Install
+4. skip wifi setup
+
+--------------------------------
+            WIRING
+--------------------------------
+1. Red wire on LEDS -> VIN/5v
+2. White wire on LEDS -> GND
+3. Green Wire on LEDS -> D4
+--------------------------------
